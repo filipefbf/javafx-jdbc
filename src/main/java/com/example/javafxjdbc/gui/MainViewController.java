@@ -1,7 +1,9 @@
 package com.example.javafxjdbc.gui;
 
 import com.example.javafxjdbc.Application;
+import com.example.javafxjdbc.DepartmentListController;
 import com.example.javafxjdbc.gui.util.Alerts;
+import com.example.javafxjdbc.model.services.DepartmentService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -15,6 +17,7 @@ import javafx.scene.layout.VBox;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 public class MainViewController implements Initializable {
 
@@ -33,11 +36,14 @@ public class MainViewController implements Initializable {
     }
     @FXML
     public void onMenuItemDepartmentAction() {
-        loadView("DepartmentList.fxml");
+        loadView("DepartmentList.fxml", (DepartmentListController controller) -> {
+            controller.setDepartmentService(new DepartmentService());
+            controller.updateTableView();
+        });
     }
     @FXML
     public void onMenuItemAboutAction() {
-        loadView("About.fxml");
+        loadView("About.fxml", x -> {});
     }
 
 
@@ -46,7 +52,7 @@ public class MainViewController implements Initializable {
 
     }
 
-    private synchronized void loadView(String absoluteName) {
+    private synchronized <T> void loadView(String absoluteName, Consumer<T> initializingAction) {
 
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource(absoluteName));
@@ -60,9 +66,17 @@ public class MainViewController implements Initializable {
 
             mainVbox.getChildren().add(mainMenu);
             mainVbox.getChildren().addAll(newVBox.getChildren());
+
+            DepartmentListController controller = fxmlLoader.getController();
+            controller.setDepartmentService(new DepartmentService());
+            controller.updateTableView();
+
+//            T controller = fxmlLoader.getController();
+//            initializingAction.accept(controller);
         }
         catch (IOException e) {
             Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), Alert.AlertType.ERROR);
         }
     }
+
 }
